@@ -1,0 +1,4 @@
+MIT LICENSE
+
+Copyright 2015 YanagiEiichi <admin@web-tinker.com>
+
