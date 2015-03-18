@@ -1,0 +1,38 @@
+<html ng-app="app">
+<script src="bower_components/angular/angular.js"></script>
+<script src="../angular-httphook.js"></script>
+<script>
+angular.module('app', ['httphook']).run(['$http', 'httphook', function($http, httphook) {
+
+  httphook.get(/^\/api/, function(req, res) {
+    res.data = [1];
+  }, function(req, res) {
+    res.data.push(4);
+  });
+
+  httphook.get(/^\/api/, function(req, res) {
+    res.data.push(2);
+  }, function(req, res) {
+    res.data.push(5);
+  });
+
+  httphook.get(/^\/api/, function(req, res) {
+    res.data.push(3);
+    // Do not launch
+    return false;
+  }, function(req, res) {
+    res.data.push(6);
+    // Set status to 200
+    res.status = 200;
+    res.statusText = 'OK';
+  });
+
+  $http({ method: 'get', url: '/api' }).then(function(e) {
+    console.log('done', e.data);
+  }, function(e) {
+    console.log('fail', e.data); 
+  });
+
+}]);
+</script>
+
