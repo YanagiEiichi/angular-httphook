@@ -1,13 +1,13 @@
 ## angular-httphook
 
-###### A lightweight http hook for angular.
+###### A lightweight http hook for angular
 
 #### Usage
 
-````
+````html
 <html ng-app="test">
 <script src="bower_components/angular/angular.js"></script>
-<script src="../angular-httphook.js"></script>
+<script src="bower_components/angular-httphook/angular-httphook.js"></script>
 <script>
 angular.module('test', ['httphook']).run(['$http', 'httphook', function($http, httphook) {
 
