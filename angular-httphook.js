@@ -1,4 +1,4 @@
-angular.module('httphook', [], ['$httpBackendProvider', 'httphookProvider', function($httpBackendProvider, httphookProvider) {
+angular.module('httphook', ['httphook.provider'], ['$httpBackendProvider', 'httphookProvider', function($httpBackendProvider, httphookProvider) {
   // Intercept the $httpBackend
   var $handler = $httpBackendProvider.$get.splice(-1, 1, function () {
     // Call the original $httpBackend, that return an internal http interface of angular
@@ -8,7 +8,8 @@ angular.module('httphook', [], ['$httpBackendProvider', 'httphookProvider', func
       httphookProvider.trigger({ method: method, url: url, data: data, callback: callback, headers: headers }, $delegate);
     };
   })[0];
-}]).provider('httphook', function() {
+}]);
+angular.module('httphook.provider', []).provider('httphook', function() {
   // Set a 'trigger' method for httphookProvider
   this.trigger = function(request, $delegate) {
     // Initialize 'req' and 'res'
@@ -39,9 +40,9 @@ angular.module('httphook', [], ['$httpBackendProvider', 'httphookProvider', func
   };
   // Set the 'hooks' as hooks storage
   var hooks;
-  this.$get = ['$injector', function($injector) {
+  this.$get = ['httphook.hooks', function(_hooks) {
     // Initialize the hooks storage
-    hooks = $injector.get('httphook.hooks');
+    hooks = _hooks;
     // Initialize the 'interface' function
     var interface = function(method, url, reqHandler, resHandler) {
       hooks.push({ method: method, url: url, reqHandler: reqHandler, resHandler: resHandler });
