@@ -79,7 +79,7 @@ void function() {
       // Solve request handlers of hooks
       hooks.solve('reqHandler', request.method, request.url, req, res, function() {
         // Launch and receive by 'complete' function
-        $delegate(req.method, req.url, req.data, complete, req.header);
+        $delegate(req.method, req.url, req.data, complete, req.headers);
       }, function() {
         // Call the 'complete' function directly
         complete(res.status, res.data, res.headers, res.statusText);
