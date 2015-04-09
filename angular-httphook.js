@@ -49,8 +49,8 @@ void function() {
       // Call the original $httpBackend, that return an internal http interface of angular
       var $delegate = $handler.apply(this, arguments);
       // Intercept the internal http interface of angular
-      return function(method, url, data, callback, headers) {
-        httphookProvider.trigger({ method: method, url: url, data: data, callback: callback, headers: headers }, $delegate);
+      return function(method, url, data, callback, headers, timeout, withCredentials) {
+        httphookProvider.trigger({ method: method, url: url, data: data, callback: callback, headers: headers, timeout: timeout, withCredentials: withCredentials }, $delegate);
       };
     })[0];
   }]);
@@ -79,7 +79,7 @@ void function() {
       // Solve request handlers of hooks
       hooks.solve('reqHandler', request.method, request.url, req, res, function() {
         // Launch and receive by 'complete' function
-        $delegate(req.method, req.url, req.data, complete, req.headers);
+        $delegate(req.method, req.url, req.data, complete, req.headers, req.timeout, req.withCredentials);
       }, function() {
         // Call the 'complete' function directly
         complete(res.status, res.data, res.headers, res.statusText);
