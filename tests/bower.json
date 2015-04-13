@@ -1,18 +1,15 @@
 {
-  "name": "demo",
-  "version": "0.0.1",
+  "name": "tests",
+  "version": "N/A",
   "authors": [
     "YanagiEiichi <admin@web-tinker.com>"
   ],
   "license": "MIT",
   "ignore": [
-    "**/.*",
-    "node_modules",
-    "bower_components",
-    "test",
-    "tests"
+    "**/.*"
   ],
   "dependencies": {
+    "tester": "~0.0.3",
     "angular": "~1.2"
   }
 }

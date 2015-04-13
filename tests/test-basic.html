@@ -1,0 +1,57 @@
+<html ng-app="test">
+<script src="bower_components/angular/angular.js"></script>
+<script src="bower_components/tester/tester.js"></script>
+<script src="../angular-httphook.js"></script>
+<script>
+var answer = {
+  'data': 'Hello World',
+  'status': 200,
+  'config': {
+    'method': 'GET',
+    'transformRequest': [
+      null
+    ],
+    'transformResponse': [
+      null
+    ],
+    'url': '/api',
+    'headers': {
+      'Accept': 'application/json, text/plain, */*'
+    }
+  },
+  'statusText': 'OK'
+};
+
+angular.module('test', ['httphook']).run(['$http', 'httphook', '$q', function($http, httphook, $q) {
+
+
+  httphook.get(/^\/api/, function(req, res) {
+    res.data = 'Hello';
+  });
+
+  httphook.get(/^\/api/, function(req, res) {
+    // Set a 200 response
+    res.status = 200;
+    res.statusText = 'OK';
+    // Set data
+    res.data += ' World';
+    // Do not launch
+    return false;
+  });
+
+  $q.all([
+    $http.get('/api').then(function(response) {
+      if(angular.toJson(response) !== angular.toJson(response)) return $q.reject();
+    }),
+    $http.get('/api').then(function(response) {
+      if(angular.toJson(response) !== angular.toJson(response)) return $q.reject();
+    })
+  ]).then(function() {
+    Tester.feedback(true);
+  }, function() {
+    Tester.feedback(false);
+  });
+
+}]);
+</script>
+
