@@ -1,0 +1,40 @@
+<html ng-app="test">
+<script src="bower_components/angular/angular.js"></script>
+<script src="bower_components/tester/tester.js"></script>
+<script src="../angular-httphook.js"></script>
+<script>
+angular.module('test', ['httphook']).run(['$http', 'httphook', '$q', function($http, httphook, $q) {
+
+  httphook(/^/, /^\/api/, function(req, res) {
+    res.status = 200;
+    return false;
+  });
+
+  $q.all([
+    $http({ method: 'get', url: '/api' }).then(function(response) {
+      if(response.config.method !== 'GET') return $q.reject();
+    }),
+    $http({ method: 'post', url: '/api' }).then(function(response) {
+      if(response.config.method !== 'POST') return $q.reject();
+    }),
+    $http({ method: 'delete', url: '/api' }).then(function(response) {
+      if(response.config.method !== 'DELETE') return $q.reject();
+    }),
+    $http({ method: 'put', url: '/api' }).then(function(response) {
+      if(response.config.method !== 'PUT') return $q.reject();
+    }),
+    $http({ method: 'patch', url: '/api' }).then(function(response) {
+      if(response.config.method !== 'PATCH') return $q.reject();
+    }),
+    $http({ method: 'head', url: '/api' }).then(function(response) {
+      if(response.config.method !== 'HEAD') return $q.reject();
+    })
+  ]).then(function() {
+    Tester.feedback(true);
+  }, function() {
+    Tester.feedback(false);
+  });
+
+}]);
+</script>
+
