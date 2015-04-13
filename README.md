@@ -2,7 +2,25 @@
 
 ###### A lightweight http hook for angular
 
-#### Usage
+#### IDL
+
+```
+void httphook(
+  RegExp method,
+  RegExp uri,
+  optional function requestHandler,
+  optional function responseHandler
+);
+```
+
+* `method` is a matcher with RegExp, hooking only request method is matched.
+* `uri` is a matcher with RegExp, hooking only request uri is matched.
+* `requestHandler` is callback function that used to process hooked requests.
+* `responseHandler` is callback function that used to process hooked response.
+
+`requestHandler` and `responseHandler` are optional.
+
+#### Demo
 
 ````html
 <html ng-app="test">
