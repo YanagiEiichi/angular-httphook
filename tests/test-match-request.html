@@ -1,0 +1,32 @@
+<html ng-app="test">
+<script src="bower_components/angular/angular.js"></script>
+<script src="bower_components/tester/tester.js"></script>
+<script src="../angular-httphook.js"></script>
+<script>
+angular.module('test', ['httphook']).run(['$http', 'httphook', '$q', function($http, httphook, $q) {
+
+  httphook('GET', /^\/fuck/, function(req, res) {
+    res.data = [];
+    req.url = '/xxxx';
+  });
+
+  httphook('GET', /^\/xxxx/, function(req, res) {
+    res.data.push(1);
+    return false;
+  });
+
+  httphook('GET', /^\/fuck/, function(req, res) {
+    res.data.push(2);
+    return false;
+  });
+
+  $http({ method: 'get', url: '/fuck' }).then(function(response) {
+    Tester.assert(angular.toJson(response.data) === '[1]', 'response data must be [1]');
+    Tester.feedback(true);
+  }, function() {
+    Tester.feedback(false);
+  });
+
+}]);
+</script>
+

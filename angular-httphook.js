@@ -27,8 +27,8 @@ void function() {
         }
         // Check hook match
         if(typeof hook[type] !== 'function') return next();
-        if(!compare(hook.method, method)) return next();
-        if(!compare(hook.url, url)) return next();
+        if(!compare(hook.method, req.method)) return next();
+        if(!compare(hook.url, req.url)) return next();
         // Call the hook handler function
         var result = hook[type].call(null, req, res);
         // Consider promise object
