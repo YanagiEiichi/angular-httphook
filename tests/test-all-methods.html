@@ -12,22 +12,22 @@ angular.module('test', ['httphook']).run(['$http', 'httphook', '$q', function($h
 
   $q.all([
     $http({ method: 'get', url: '/api' }).then(function(response) {
-      if(response.config.method !== 'GET') return $q.reject();
+      Tester.assert(response.config.method === 'GET', 'method must be GET');
     }),
     $http({ method: 'post', url: '/api' }).then(function(response) {
-      if(response.config.method !== 'POST') return $q.reject();
+      Tester.assert(response.config.method === 'POST', 'method must be POST');
     }),
     $http({ method: 'delete', url: '/api' }).then(function(response) {
-      if(response.config.method !== 'DELETE') return $q.reject();
+      Tester.assert(response.config.method === 'DELETE', 'method must be DELETE');
     }),
     $http({ method: 'put', url: '/api' }).then(function(response) {
-      if(response.config.method !== 'PUT') return $q.reject();
+      Tester.assert(response.config.method === 'PUT', 'method must be PUT');
     }),
     $http({ method: 'patch', url: '/api' }).then(function(response) {
-      if(response.config.method !== 'PATCH') return $q.reject();
+      Tester.assert(response.config.method === 'PATCH', 'method must be PATCH');
     }),
     $http({ method: 'head', url: '/api' }).then(function(response) {
-      if(response.config.method !== 'HEAD') return $q.reject();
+      Tester.assert(response.config.method === 'HEAD', 'method must be HEAD');
     })
   ]).then(function() {
     Tester.feedback(true);

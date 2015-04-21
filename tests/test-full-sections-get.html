@@ -29,7 +29,7 @@ angular.module('app', ['httphook']).run(['$http', 'httphook', '$q', function($ht
   });
 
   $http({ method: 'get', url: '/api' }).then(function(e) {
-    if(e.data.join('') !== '123456') return $q.reject();
+    Tester.assert(e.data.join('') === '123456', 'the result must be 123456');
     Tester.feedback(true);
   }).then(null, function(e) {
     Tester.feedback(false);

@@ -41,10 +41,10 @@ angular.module('test', ['httphook']).run(['$http', 'httphook', '$q', function($h
 
   $q.all([
     $http.get('/api').then(function(response) {
-      if(angular.toJson(response) !== angular.toJson(response)) return $q.reject();
+      Tester.assert(angular.toJson(response) === angular.toJson(answer), 'answer1 can\'t be matched');
     }),
     $http.get('/api').then(function(response) {
-      if(angular.toJson(response) !== angular.toJson(response)) return $q.reject();
+      Tester.assert(angular.toJson(response) === angular.toJson(answer), 'answer2 can\'t be matched');
     })
   ]).then(function() {
     Tester.feedback(true);
