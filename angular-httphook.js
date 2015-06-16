@@ -60,7 +60,9 @@ void function() {
     // Set a 'trigger' method for httphookProvider
     this.trigger = function(request, $delegate) {
       // Initialize 'req' and 'res'
-      var req = angular.copy(request);
+      var req = {};
+      // MUST be shallow copy, because `request.data` may be a native object, e.g. FormData.
+      for(var i in request) req[i] = request[i];
       var res = { status: 204, data: null, headers: '', statusText: 'OK' };
       delete req.callback;
       // Execute this function on request complete whatever launch
