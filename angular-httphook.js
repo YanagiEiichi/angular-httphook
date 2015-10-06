@@ -99,6 +99,7 @@ void function() {
       interface.get = angular.bind(null, interface, 'GET');
       interface.post = angular.bind(null, interface, 'POST');
       interface.put = angular.bind(null, interface, 'PUT');
+      interface.patch = angular.bind(null, interface, 'PATCH');
       interface['delete'] = angular.bind(null, interface, 'DELETE');
       return interface;
     }];
