@@ -1,0 +1,24 @@
+<html ng-app="test">
+<script src="bower_components/angular/angular.js"></script>
+<script src="bower_components/tester/tester.js"></script>
+<script src="../angular-httphook.js"></script>
+<script>
+angular.module('test', ['httphook']).run(['$http', 'httphook', '$q', function($http, httphook, $q) {
+
+  httphook.post(/^\/api/, function(req, res) {
+    res.data = req.data.x;
+    res.status = 200;
+    res.statusText = 'OK';
+    return false;
+  });
+
+  var data = new FormData();
+  data.x = 123;
+  $http.post('/api', data).then(function(response) {
+    Tester.assert(response.data === 123);
+    Tester.feedback(true);
+  });
+
+}]);
+</script>
+
