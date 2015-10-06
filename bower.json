@@ -1,7 +1,7 @@
 {
   "name": "angular-httphook",
   "main": "angular-httphook.js",
-  "version": "0.0.7",
+  "version": "0.0.8",
   "authors": [
     "YanagiEiichi <admin@web-tinker.com>"
   ],
