@@ -1,7 +1,6 @@
 'use strict';
 /**/ void function() {
 
-// The internal "Hook" class
 var Hook = function(raw) {
   this.method = raw[0] || /^/;
   this.url = raw[1] || /^/;
@@ -9,9 +8,27 @@ var Hook = function(raw) {
   this.resHandler = raw[3];
 };
 
-// To test match request
 Hook.prototype.test = function(req) {
   return req.method.match(this.method) && req.url.match(this.url);
+};
+
+var Request = function(raw) {
+  raw = raw || {};
+  this.method = raw[0];
+  this.url = raw[1];
+  this.data = raw[2];
+  this.callback = raw[3];
+  this.headers = raw[4];
+  this.timeout = raw[5];
+  this.withCredentials = raw[6];
+};
+
+var Response = function(raw) {
+  raw = raw || {};
+  this.status = raw[0] || 200;
+  this.data = raw[1] || '';
+  this.headers = raw[2] || '';
+  this.statusText = raw[3] || 'OK';
 };
 
 
@@ -52,12 +69,8 @@ hooks.solve = function(type, method, url, req, res, done, fail) {
 
 // Set a 'trigger' method to hooks
 hooks.trigger = function(request, $delegate) {
-  // Initialize 'req' and 'res'
-  var req = {};
-  // MUST be shallow copy, because `request.data` may be a native object such as FormData
-  for(var i in request) req[i] = request[i];
-  var res = { status: 204, data: null, headers: '', statusText: 'OK' };
-  delete req.callback;
+  // Initialize 'res'
+  var res = new Response();
   // Execute this function on request complete whatever launch
   var complete = function(status, data, headers, statusText) {
     // Save parameters to 'res'
@@ -66,15 +79,15 @@ hooks.trigger = function(request, $delegate) {
     res.headers = headers;
     res.statusText = statusText;
     // Solve response handlers of hooks
-    hooks.solve('resHandler', request.method, request.url, req, res, function() {
+    hooks.solve('resHandler', request.method, request.url, request, res, function() {
       // Last, call the callback function to finish the whole hook
       request.callback(res.status, res.data, res.headers, res.statusText);
     }, angular.noop);
   };
   // Solve request handlers of hooks
-  hooks.solve('reqHandler', request.method, request.url, req, res, function() {
+  hooks.solve('reqHandler', request.method, request.url, request, res, function() {
     // Launch and receive by 'complete' function
-    $delegate(req.method, req.url, req.data, complete, req.headers, req.timeout, req.withCredentials);
+    $delegate(request.method, request.url, request.data, complete, request.headers, request.timeout, request.withCredentials);
   }, function() {
     // Call the 'complete' function directly
     complete(res.status, res.data, res.headers, res.statusText);
@@ -89,8 +102,8 @@ angular.module('httphook', [], ['$httpBackendProvider', function($httpBackendPro
     // Call the original $httpBackend, that return an internal http interface of angular
     var $delegate = $OriginalHttpBackend.apply(this, arguments);
     // Intercept the internal http interface of angular
-    return function(method, url, data, callback, headers, timeout, withCredentials) {
-      hooks.trigger({ method: method, url: url, data: data, callback: callback, headers: headers, timeout: timeout, withCredentials: withCredentials }, $delegate);
+    return function() {
+      hooks.trigger(new Request(arguments), $delegate);
     };
   })[0];
 }]).factory('httphook', function() { 
