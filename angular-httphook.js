@@ -98,14 +98,15 @@ hooks.trigger = function(request, $delegate) {
 // Angular interface
 angular.module('httphook', [], ['$httpBackendProvider', function($httpBackendProvider) {
   // Intercept the $httpBackend
-  var $OriginalHttpBackend = $httpBackendProvider.$get.splice(-1, 1, function () {
+  var $OriginalHttpBackend = $httpBackendProvider.$get.pop();
+  $httpBackendProvider.$get.push(function() {
     // Call the original $httpBackend, that return an internal http interface of angular
     var $delegate = $OriginalHttpBackend.apply(this, arguments);
     // Intercept the internal http interface of angular
     return function() {
       hooks.trigger(new Request(arguments), $delegate);
     };
-  })[0];
+  });
 }]).factory('httphook', function() { 
   // Initialize the 'interface' function
   var instance = function() {
