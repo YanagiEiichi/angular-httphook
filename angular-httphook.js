@@ -36,7 +36,7 @@ var Response = function(raw) {
 var hooks = [];
 
 // Solve hooks
-hooks.solve = function(type, method, url, req, res, done, fail) {
+hooks.solve = function(type, req, res, done, fail) {
   // A recursive function
   var walker = function(i) {
     // Call the 'done' function, if all hooks solved
@@ -79,13 +79,13 @@ hooks.trigger = function(request, $delegate) {
     res.headers = headers;
     res.statusText = statusText;
     // Solve response handlers of hooks
-    hooks.solve('resHandler', request.method, request.url, request, res, function() {
+    hooks.solve('resHandler', request, res, function() {
       // Last, call the callback function to finish the whole hook
       request.callback(res.status, res.data, res.headers, res.statusText);
     }, angular.noop);
   };
   // Solve request handlers of hooks
-  hooks.solve('reqHandler', request.method, request.url, request, res, function() {
+  hooks.solve('reqHandler', request, res, function() {
     // Launch and receive by 'complete' function
     $delegate(request.method, request.url, request.data, complete, request.headers, request.timeout, request.withCredentials);
   }, function() {
