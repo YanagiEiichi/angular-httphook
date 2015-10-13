@@ -1,3 +1,4 @@
+'use strict';
 /**/ void function() {
 
 // The internal Hooks class (return an array)
@@ -45,9 +46,9 @@ var Hooks = function() {
 
 angular.module('httphook', ['httphook.provider'], ['$httpBackendProvider', 'httphookProvider', function($httpBackendProvider, httphookProvider) {
   // Intercept the $httpBackend
-  var $handler = $httpBackendProvider.$get.splice(-1, 1, function () {
+  var $OriginalHttpBackend = $httpBackendProvider.$get.splice(-1, 1, function () {
     // Call the original $httpBackend, that return an internal http interface of angular
-    var $delegate = $handler.apply(this, arguments);
+    var $delegate = $OriginalHttpBackend.apply(this, arguments);
     // Intercept the internal http interface of angular
     return function(method, url, data, callback, headers, timeout, withCredentials) {
       httphookProvider.trigger({ method: method, url: url, data: data, callback: callback, headers: headers, timeout: timeout, withCredentials: withCredentials }, $delegate);
@@ -92,17 +93,17 @@ angular.module('httphook.provider', []).provider('httphook', function() {
   this.$get = [function() {
     // Initialize the hooks storage
     // Initialize the 'interface' function
-    var interface = function(method, url, reqHandler, resHandler) {
+    var instance = function(method, url, reqHandler, resHandler) {
       hooks.push({ method: method, url: url, reqHandler: reqHandler, resHandler: resHandler });
-      return interface;
+      return instance;
     };
     // Initialize some shortcuts
-    interface.get = angular.bind(null, interface, 'GET');
-    interface.post = angular.bind(null, interface, 'POST');
-    interface.put = angular.bind(null, interface, 'PUT');
-    interface.patch = angular.bind(null, interface, 'PATCH');
-    interface['delete'] = angular.bind(null, interface, 'DELETE');
-    return interface;
+    instance.get = angular.bind(null, instance, 'GET');
+    instance.post = angular.bind(null, instance, 'POST');
+    instance.put = angular.bind(null, instance, 'PUT');
+    instance.patch = angular.bind(null, instance, 'PATCH');
+    instance['delete'] = angular.bind(null, instance, 'DELETE');
+    return instance;
   }];
 });
 
