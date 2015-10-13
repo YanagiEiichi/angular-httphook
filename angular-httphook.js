@@ -69,15 +69,9 @@ hooks.solve = function(type, req, res, done, fail) {
 
 // Set a 'trigger' method to hooks
 hooks.trigger = function(request, $delegate) {
-  // Initialize 'res'
-  var res = new Response();
   // Execute this function on request complete whatever launch
-  var complete = function(status, data, headers, statusText) {
-    // Save parameters to 'res'
-    res.status = status;
-    res.data = data;
-    res.headers = headers;
-    res.statusText = statusText;
+  var complete = function() {
+    var res = new Response(arguments);
     // Solve response handlers of hooks
     hooks.solve('resHandler', request, res, function() {
       // Last, call the callback function to finish the whole hook
@@ -85,6 +79,7 @@ hooks.trigger = function(request, $delegate) {
     }, angular.noop);
   };
   // Solve request handlers of hooks
+  var res = new Response();
   hooks.solve('reqHandler', request, res, function() {
     // Launch and receive by 'complete' function
     $delegate(request.method, request.url, request.data, complete, request.headers, request.timeout, request.withCredentials);
@@ -94,19 +89,23 @@ hooks.trigger = function(request, $delegate) {
   });
 };
 
-
-// Angular interface
-angular.module('httphook', [], ['$httpBackendProvider', function($httpBackendProvider) {
-  // Intercept the $httpBackend
-  var $OriginalHttpBackend = $httpBackendProvider.$get.pop();
-  $httpBackendProvider.$get.push(function() {
+var httpBackendDecorator = function($OriginalHttpBackend) {
+  return function() {
     // Call the original $httpBackend, that return an internal http interface of angular
     var $delegate = $OriginalHttpBackend.apply(this, arguments);
     // Intercept the internal http interface of angular
     return function() {
       hooks.trigger(new Request(arguments), $delegate);
-    };
-  });
+    }
+  };
+};
+
+// Angular interface
+angular.module('httphook', [], ['$httpBackendProvider', function($httpBackendProvider) {
+  // Intercept the $httpBackend
+  var httpBackend = $httpBackendProvider.$get;
+  var lastIndex = httpBackend.length - 1;
+  httpBackend[lastIndex] = httpBackendDecorator(httpBackend[lastIndex]);
 }]).factory('httphook', function() { 
   // Initialize the 'interface' function
   var instance = function() {
