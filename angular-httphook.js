@@ -1,18 +1,5 @@
-'use strict';
+/**/ 'use strict';
 /**/ void function() {
-
-
-var Hook = function(raw) {
-  this.method = raw[0] || /^/;
-  this.url = raw[1] || /^/;
-  this.reqHandler = raw[2];
-  this.resHandler = raw[3];
-};
-
-Hook.prototype.test = function(req) {
-  return req.method.match(this.method) && req.url.match(this.url);
-};
-
 
 var createHeapClass = function(def) {
   var HeapClass = function(raw) {
@@ -26,6 +13,17 @@ var createHeapClass = function(def) {
     return raw;
   };
   return HeapClass;
+};
+
+var Hook = function(raw) {
+  this.method = raw[0] || /^/;
+  this.url = raw[1] || /^/;
+  this.reqHandler = raw[2];
+  this.resHandler = raw[3];
+};
+
+Hook.prototype.test = function(req) {
+  return req.method.match(this.method) && req.url.match(this.url);
 };
 
 var Request = createHeapClass({
@@ -45,7 +43,6 @@ var Response = createHeapClass({
   headers: '',
   statusText: 'OK'
 });
-
 
 // The internal "hooks" abstract class (an array)
 var hooks = [];
@@ -103,7 +100,6 @@ hooks.trigger = function(req, $delegate) {
   });
 };
 
-
 var httpBackendDecorator = function($OriginalHttpBackend) {
   return function() {
     // Call the original $httpBackend, that return an internal http interface of angular
@@ -115,24 +111,22 @@ var httpBackendDecorator = function($OriginalHttpBackend) {
   };
 };
 
-
 // Angular interface
 angular.module('httphook', [], ['$httpBackendProvider', function($httpBackendProvider) {
-  // Intercept the $httpBackend
+  // Use decorator
   var httpBackend = $httpBackendProvider.$get;
   var lastIndex = httpBackend.length - 1;
   httpBackend[lastIndex] = httpBackendDecorator(httpBackend[lastIndex]);
-}]).factory('httphook', function() { 
+}]).factory('httphook', function() {
   // Initialize the 'interface' function
   var instance = function() {
     hooks.push(new Hook(arguments));
   };
   // Initialize some shortcuts
-  instance.get = angular.bind(null, instance, 'GET');
-  instance.post = angular.bind(null, instance, 'POST');
-  instance.put = angular.bind(null, instance, 'PUT');
-  instance.patch = angular.bind(null, instance, 'PATCH');
-  instance['delete'] = angular.bind(null, instance, 'DELETE');
+  var methods = [ 'get', 'post', 'put', 'patch', 'delete' ];
+  for(var i = 0; i < methods.length; i++) {
+    instance[methods[i]] = angular.bind(null, instance, methods[i].toUpperCase());
+  }
   return instance;
 });
 
