@@ -1,6 +1,7 @@
 'use strict';
 /**/ void function() {
 
+
 var Hook = function(raw) {
   this.method = raw[0] || /^/;
   this.url = raw[1] || /^/;
@@ -12,30 +13,43 @@ Hook.prototype.test = function(req) {
   return req.method.match(this.method) && req.url.match(this.url);
 };
 
-var Request = function(raw) {
-  raw = raw || {};
-  this.method = raw[0];
-  this.url = raw[1];
-  this.data = raw[2];
-  this.callback = raw[3];
-  this.headers = raw[4];
-  this.timeout = raw[5];
-  this.withCredentials = raw[6];
+
+var createHeapClass = function(def) {
+  var HeapClass = function(raw) {
+    raw = raw || {};
+    var index = 0;
+    for(var key in def) this[key] = raw[index++] || def[key];
+  };
+  HeapClass.prototype.toArray = function() {
+    var raw = [];
+    for(var key in def) raw.push(this[key]);
+    return raw;
+  };
+  return HeapClass;
 };
 
-var Response = function(raw) {
-  raw = raw || {};
-  this.status = raw[0] || 200;
-  this.data = raw[1] || '';
-  this.headers = raw[2] || '';
-  this.statusText = raw[3] || 'OK';
-};
+var Request = createHeapClass({
+  method: 'GET',
+  url: '/',
+  data: null,
+  callback: null,
+  headers: null,
+  timeout: null,
+  withCredentials: null,
+  xRequestWith: null
+});
+
+var Response = createHeapClass({
+  status: 200,
+  data: '',
+  headers: '',
+  statusText: 'OK'
+});
 
 
 // The internal "hooks" abstract class (an array)
 var hooks = [];
 
-// Solve hooks
 hooks.solve = function(type, req, res, done, fail) {
   // A recursive function
   var walker = function(i) {
@@ -67,27 +81,28 @@ hooks.solve = function(type, req, res, done, fail) {
   walker(0);
 };
 
-// Set a 'trigger' method to hooks
-hooks.trigger = function(request, $delegate) {
-  // Execute this function on request complete whatever launch
-  var complete = function() {
+hooks.trigger = function(req, $delegate) {
+  // Hijack response handler
+  var callback = req.callback;
+  req.callback = function() {
     var res = new Response(arguments);
     // Solve response handlers of hooks
-    hooks.solve('resHandler', request, res, function() {
-      // Last, call the callback function to finish the whole hook
-      request.callback(res.status, res.data, res.headers, res.statusText);
+    hooks.solve('resHandler', req, res, function() {
+      // Call the callback function to finish the whole hook
+      callback.apply(req, res.toArray());
     }, angular.noop);
   };
-  // Solve request handlers of hooks
+  // Solve req handlers of hooks
   var res = new Response();
-  hooks.solve('reqHandler', request, res, function() {
-    // Launch and receive by 'complete' function
-    $delegate(request.method, request.url, request.data, complete, request.headers, request.timeout, request.withCredentials);
+  hooks.solve('reqHandler', req, res, function() {
+    // Request Actually
+    $delegate.apply(null, req.toArray());
   }, function() {
     // Call the 'complete' function directly
-    complete(res.status, res.data, res.headers, res.statusText);
+    req.callback.apply(null, res.toArray());
   });
 };
+
 
 var httpBackendDecorator = function($OriginalHttpBackend) {
   return function() {
@@ -99,6 +114,7 @@ var httpBackendDecorator = function($OriginalHttpBackend) {
     }
   };
 };
+
 
 // Angular interface
 angular.module('httphook', [], ['$httpBackendProvider', function($httpBackendProvider) {
