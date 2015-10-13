@@ -1,14 +1,22 @@
 'use strict';
 /**/ void function() {
 
-// hooks manager (an array)
-var hooks = [];
-
-// To compare matcher and target, RegExp may be used
-hooks.compare = function(matcher, target) {
-  if(matcher.test) return matcher.test(target);
-  return matcher === target;
+// The internal "Hook" class
+var Hook = function(raw) {
+  this.method = raw[0] || /^/;
+  this.url = raw[1] || /^/;
+  this.reqHandler = raw[2];
+  this.resHandler = raw[3];
 };
+
+// To test match request
+Hook.prototype.test = function(req) {
+  return req.method.match(this.method) && req.url.match(this.url);
+};
+
+
+// The internal "hooks" abstract class (an array)
+var hooks = [];
 
 // Solve hooks
 hooks.solve = function(type, method, url, req, res, done, fail) {
@@ -29,8 +37,7 @@ hooks.solve = function(type, method, url, req, res, done, fail) {
     }
     // Check hook match
     if(typeof hook[type] !== 'function') return next();
-    if(!hooks.compare(hook.method, req.method)) return next();
-    if(!hooks.compare(hook.url, req.url)) return next();
+    if(!hook.test(req)) return next();
     // Call the hook handler function
     var result = hook[type].call(null, req, res);
     // Consider promise object
@@ -74,6 +81,8 @@ hooks.trigger = function(request, $delegate) {
   });
 };
 
+
+// Angular interface
 angular.module('httphook', [], ['$httpBackendProvider', function($httpBackendProvider) {
   // Intercept the $httpBackend
   var $OriginalHttpBackend = $httpBackendProvider.$get.splice(-1, 1, function () {
@@ -86,9 +95,8 @@ angular.module('httphook', [], ['$httpBackendProvider', function($httpBackendPro
   })[0];
 }]).factory('httphook', function() { 
   // Initialize the 'interface' function
-  var instance = function(method, url, reqHandler, resHandler) {
-    hooks.push({ method: method, url: url, reqHandler: reqHandler, resHandler: resHandler });
-    return instance;
+  var instance = function() {
+    hooks.push(new Hook(arguments));
   };
   // Initialize some shortcuts
   instance.get = angular.bind(null, instance, 'GET');
