@@ -1,47 +1,46 @@
 'use strict';
 /**/ void function() {
 
-// The internal Hooks class (return an array)
-var Hooks = function() {
-  var hooks = [];
-  // To compare matcher and target, RegExp may be used
-  var compare = function(matcher, target) {
-    if(matcher.test) return matcher.test(target);
-    return matcher === target;
+// hooks manager (an array)
+var hooks = [];
+
+// To compare matcher and target, RegExp may be used
+hooks.compare = function(matcher, target) {
+  if(matcher.test) return matcher.test(target);
+  return matcher === target;
+};
+
+// Solve hooks
+hooks.solve = function(type, method, url, req, res, done, fail) {
+  // A recursive function
+  var walker = function(i) {
+    // Call the 'done' function, if all hooks solved
+    var hook = hooks[i];
+    if(!hook) return done();
+    var next = function(e) {
+      switch(e) {
+        // Ignore subsequent hooks, if true
+        case true: return walker(-1);
+        // Call the 'fail' function, if false
+        case false: return fail();
+        // Recur
+        default: walker(i + 1);
+      };
+    }
+    // Check hook match
+    if(typeof hook[type] !== 'function') return next();
+    if(!hooks.compare(hook.method, req.method)) return next();
+    if(!hooks.compare(hook.url, req.url)) return next();
+    // Call the hook handler function
+    var result = hook[type].call(null, req, res);
+    // Consider promise object
+    if(result && typeof result.then === 'function') {
+      result.then(next);
+    } else {
+      next(result);
+    }
   };
-  // Solve hooks
-  hooks.solve = function(type, method, url, req, res, done, fail) {
-    // A recursive function
-    var walker = function(i) {
-      // Call the 'done' function, if all hooks solved
-      var hook = hooks[i];
-      if(!hook) return done();
-      var next = function(e) {
-        switch(e) {
-          // Ignore subsequent hooks, if true
-          case true: return walker(-1);
-          // Call the 'fail' function, if false
-          case false: return fail();
-          // Recur
-          default: walker(i + 1);
-        };
-      }
-      // Check hook match
-      if(typeof hook[type] !== 'function') return next();
-      if(!compare(hook.method, req.method)) return next();
-      if(!compare(hook.url, req.url)) return next();
-      // Call the hook handler function
-      var result = hook[type].call(null, req, res);
-      // Consider promise object
-      if(result && typeof result.then === 'function') {
-        result.then(next);
-      } else {
-        next(result);
-      }
-    };
-    walker(0);
-  };
-  return hooks;
+  walker(0);
 };
 
 angular.module('httphook', ['httphook.provider'], ['$httpBackendProvider', 'httphookProvider', function($httpBackendProvider, httphookProvider) {
@@ -58,7 +57,6 @@ angular.module('httphook', ['httphook.provider'], ['$httpBackendProvider', 'http
 
 // Create an angular module to define the 'httphook' provider
 angular.module('httphook.provider', []).provider('httphook', function() {
-  var hooks = new Hooks();
   // Set a 'trigger' method for httphookProvider
   this.trigger = function(request, $delegate) {
     // Initialize 'req' and 'res'
